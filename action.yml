@@ -43,10 +43,10 @@ inputs:
     description: "Where to send a trace of the build: `off`, `firn` or `custom`. `firn` and `custom` need `id-token: write`."
     default: "off"
   telemetry-endpoint:
-    description: OTLP/HTTP endpoint the trace goes to, with `telemetry` set to `custom`.
+    description: Required HTTP(S) OTLP endpoint the trace goes to, with `telemetry` set to `custom`.
     default: ""
   telemetry-token-exchange-endpoint:
-    description: Endpoint that trades the job's ID token for a collector token, with `telemetry` set to `custom`. Empty sends no token.
+    description: Optional HTTP(S) endpoint that trades the job's ID token for a collector token, with `telemetry` set to `custom`. Empty sends no token.
     default: ""
   provenance:
     description: Attach a SLSA provenance attestation. The image is then pushed as an index.
@@ -55,7 +55,7 @@ inputs:
     description: Annotate the image with its source, revision and version, read from the workflow run.
     default: "true"
   retries:
-    description: How often pulls, base image extraction and the push are retried.
+    description: Number of retries of pulls, base image extraction and the push.
     default: "3"
   github-token:
     description: "Token kaniko uses for ghcr.io, and to clone the repository without a checkout. Pushing needs `packages: write`."
@@ -64,7 +64,7 @@ inputs:
     description: Additional executor flags.
     default: ""
   platforms:
-    description: Platforms to build, separated by commas, such as `linux/amd64,linux/arm64`. Platforms other than the runner's are emulated with QEMU, which needs a runner with Docker. Each is pushed as `<destination>-<arch>` and merged into one index at `destination`. Empty builds for the runner's platform only.
+    description: Platforms to build, separated by commas, such as `linux/amd64,linux/arm64`. Platforms other than the runner's are emulated with QEMU, which needs a runner with Docker. Each is pushed as `<destination>-<arch>` and merged into one index at `destination`, which must include a tag. Empty builds for the runner's platform only.
     default: ""
   image:
     description: kaniko debug image to run the build in, when the job does not already run in a kaniko image.

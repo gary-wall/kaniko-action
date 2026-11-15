@@ -7,16 +7,12 @@ if [ -z "$INPUT_DESTINATION" ]; then
   INPUT_DESTINATION=$("$GITHUB_ACTION_PATH/destination.sh")
 fi
 
-results="$RUNNER_TEMP/kaniko-$$"
-mkdir -p "$results"
 if [ -x /kaniko/executor ]; then
   direct=true
   root="$GITHUB_WORKSPACE"
-  out="$results"
 else
   direct=false
   root=/workspace
-  out=/kaniko/out
 fi
 
 image="$INPUT_IMAGE"
@@ -26,14 +22,25 @@ if [ "$INPUT_BOOTSTRAP" = true ]; then
   export KANIKO_DIR
 fi
 
-# Without a checkout, as in a Kubernetes job that runs no JavaScript actions,
-# kaniko clones the triggering commit itself.
-if [ -d "$GITHUB_WORKSPACE/$INPUT_CONTEXT" ]; then
+INPUT_CONTEXT=${INPUT_CONTEXT:-.}
+INPUT_DOCKERFILE=${INPUT_DOCKERFILE:-Dockerfile}
+context_dir="$GITHUB_WORKSPACE/$INPUT_CONTEXT"
+local_dockerfile="$context_dir/$INPUT_DOCKERFILE"
+case "$INPUT_DOCKERFILE" in
+  /*) local_dockerfile="$INPUT_DOCKERFILE" ;;
+esac
+
+# An empty workspace directory is not evidence that the repository was checked out.
+if [ -d "$GITHUB_WORKSPACE/.git" ] ||
+  [ -f "$GITHUB_WORKSPACE/.git" ] ||
+  { [ -d "$context_dir" ] && [ -f "$local_dockerfile" ]; }; then
   context="$root/$INPUT_CONTEXT"
   case "$INPUT_DOCKERFILE" in
     /*) dockerfile="$INPUT_DOCKERFILE" ;;
     *) dockerfile="$context/$INPUT_DOCKERFILE" ;;
   esac
+  INPUT_LOCAL_CONTEXT="$context_dir"
+  INPUT_LOCAL_DOCKERFILE="$local_dockerfile"
   set --
 else
   # The bare SHA makes kaniko fetch the commit itself, which also reaches the
@@ -44,6 +51,19 @@ else
   GIT_USERNAME=x-access-token
   GIT_PASSWORD="$INPUT_GITHUB_TOKEN"
   export GIT_USERNAME GIT_PASSWORD
+fi
+
+INPUT_DIRECT=$direct \
+  INPUT_LOCAL_CONTEXT="${INPUT_LOCAL_CONTEXT:-}" \
+  INPUT_LOCAL_DOCKERFILE="${INPUT_LOCAL_DOCKERFILE:-}" \
+  sh "$GITHUB_ACTION_PATH/preflight.sh"
+
+results="$RUNNER_TEMP/kaniko-$$"
+mkdir -p "$results"
+if [ "$direct" = true ]; then
+  out="$results"
+else
+  out=/kaniko/out
 fi
 
 set -- "$@" \
