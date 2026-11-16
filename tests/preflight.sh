@@ -1,7 +1,7 @@
 #!/bin/sh
 set -eu
 
-action=$(CDPATH= cd -- "$(dirname "$0")/.." && pwd)
+action=$(CDPATH='' cd -- "$(dirname "$0")/.." && pwd)
 
 INPUT_PUSH=true
 INPUT_REPRODUCIBLE=false
@@ -82,7 +82,7 @@ env INPUT_LOCAL_CONTEXT="$action/tests/build" \
 
 tmp=$(mktemp -d)
 trap 'rm -f "$tmp/docker" "$tmp/build-output"; rmdir "$tmp/workspace" "$tmp/runner" "$tmp"' EXIT HUP INT TERM
-printf '%s\n' '#!/bin/sh' 'echo called >> "$DOCKER_LOG"' > "$tmp/docker"
+printf '%s\n' '#!/bin/sh' "echo called >> \"\$DOCKER_LOG\"" > "$tmp/docker"
 chmod +x "$tmp/docker"
 PATH="$tmp:$PATH"
 export PATH
