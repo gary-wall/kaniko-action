@@ -11,12 +11,10 @@ permissions:
 jobs:
   pre-commit:
     runs-on: ubuntu-26.04
+    container: python:3.15@sha256:46837ed3105db0029b6d656816185c6258e3b39690532fb782428e0a5fd76182
     steps:
       - uses: actions/checkout@v7.0.1
-      - uses: actions/setup-python@v7.1.0
-        with:
-          python-version: "3.15"
-      - run: pip install pre-commit==4.7.0
+      - run: pip install -r pylock.toml
       - run: pre-commit run --all-files --show-diff-on-failure
       - name: verify the actions lockfile
         env:
