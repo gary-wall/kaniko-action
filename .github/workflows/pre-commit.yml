@@ -16,7 +16,10 @@ jobs:
       - uses: actions/setup-python@v7.1.0
         with:
           python-version: "3.15"
-      - run: pip install -r pylock.toml
+      - uses: astral-sh/setup-uv@v9.0.0
+        with:
+          version: "0.13.9"
+      - run: uv pip install -r pylock.toml
       - run: pre-commit run --all-files --show-diff-on-failure
       - name: verify the actions lockfile
         env:
