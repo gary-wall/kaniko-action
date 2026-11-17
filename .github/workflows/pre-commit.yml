@@ -15,7 +15,7 @@ jobs:
     steps:
       - uses: actions/checkout@v7.0.1
       - run: apt-get update && apt-get install -y git
-      - run: pip install --pylock pylock.toml
+      - run: pip install -r pylock.toml
       - run: pre-commit run --all-files --show-diff-on-failure
       - name: verify the actions lockfile
         env:
